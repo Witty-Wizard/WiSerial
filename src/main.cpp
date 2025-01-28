@@ -2,17 +2,18 @@
 #include <WiFi.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
+#include <ESPmDNS.h>
 
 #define RX_PIN 5         // ESP32 RX (connect to device TX)
 #define TX_PIN 18        // ESP32 TX (connect to device RX)
 #define BAUD_RATE 115200 // Set your desired baud rate
 
 // WiFi credentials
-const char *ssid = "WiFi";
-const char *password = "WiFi";
+const char *ssid = "WiFi-SSID";
+const char *password = "WiFi-Password";
 
 // TCP Configuration
-AsyncServer server(8888);
+AsyncServer server(80);
 AsyncClient *client = nullptr;
 IPAddress remoteIP;
 bool remoteIPSet = false;
@@ -33,6 +34,16 @@ void setup()
   Serial.println("\nConnected to WiFi!");
   Serial.print("ESP32 IP Address: ");
   Serial.println(WiFi.localIP());
+
+  if (!MDNS.begin("esp32"))
+  { // Set the hostname to "esp32.local"
+    Serial.println("Error setting up MDNS responder!");
+    while (1)
+    {
+      delay(1000);
+    }
+  }
+  Serial.println("mDNS responder started");
 
   // Start Async TCP Server
   server.onClient([](void *arg, AsyncClient *newClient)
